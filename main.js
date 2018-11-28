@@ -39,8 +39,8 @@ app.get('/u/:user', async function (req, res) {
 
 app.get('/h/:user', async function (req, res) {
     const params = {
-        track: '#' + req.params.user,
-        lang: 'en'
+        q: '#' + req.params.user
+        // lang: 'en'
     }
     let tweets = await hashTweets(params);
     res.send(tweets);
@@ -58,11 +58,9 @@ function getTweets(params) {
                 let name;
                 let final = [];
                 for (let i = 0; i < value.length; i++) {
-                    text = value[i]['text']
-                    name = value[i].user.profile_background_image_url;
+                    text = value[i]['text'];
                     final.push({
-                        text: text,
-                        name: name
+                        text: text
                     });
                 }
                 resolve(final);
@@ -73,30 +71,24 @@ function getTweets(params) {
 
 function hashTweets(params) {
     return new Promise(function (resolve, reject) {
-        var data_1 = [];
-
-        client.stream('statuses/filter', params, function (stream) {
-            stream.on('data', function (event) {
-                data_1.push(event)
-                if (data_1.length > 3) {
-                    let text;
-                    let name;
-                    let final = [];
-                    for (let i = 0; i < data_1.length; i++) {
-                        text = data_1[i]['text']
-                        name = data_1[i].user.profile_background_image_url;
-                        final.push({
-                            text: text,
-                            name: name
-                        });
-                    }
-                    resolve(final);
+        client.get('search/tweets', params, function (err, tweets, response) {
+            console.log("tweet: " + JSON.stringify(tweets.statuses))
+            if (err && !response.statusCode == 200) {
+                console.log("error", response.statusCode);
+                reject('error', null);
+            } else {
+                let value = tweets.statuses;
+                let text;
+                let name;
+                let final = [];
+                for (let i = 0; i < value.length; i++) {
+                    text = value[i]['text'];
+                    final.push({
+                        text: text
+                    });
                 }
-            });
-            stream.on('error', function (error) {
-                console.log(">", error);
-            });
+                resolve(final);
+            }
         });
-
     });
 }
