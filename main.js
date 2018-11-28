@@ -34,36 +34,50 @@ app.get('/u/:user', async function (req, res) {
         lang: 'en'
     }
     let tweets = await getTweets(params);
-    res.send(tweets);
+    if (tweets.length) {
+        res.send(tweets);
+    } else {
+        res.send("404 Server Error");
+    }
 });
 
 app.get('/h/:user', async function (req, res) {
     const params = {
         q: '#' + req.params.user
-        // lang: 'en'
     }
     let tweets = await hashTweets(params);
-    res.send(tweets);
+    if (tweets.length) {
+        res.send(tweets);
+    } else {
+        res.send("404 Server Error");
+    }
+
 });
 
+//getTweets function for getting the tweets from /h/:user, which is the user profile or id is given
 function getTweets(params) {
     return new Promise(function (resolve, reject) {
+        //client.get is a get api with 'search/tweets' of twitters and the params should be passed with the user check the line 30
         client.get('search/tweets', params, function (err, tweets, response) {
             if (err && !response.statusCode == 200) {
                 console.log("error", response.statusCode);
                 reject('error', null);
             } else {
-                let value = tweets.statuses;
-                let text;
-                let name;
-                let final = [];
-                for (let i = 0; i < value.length; i++) {
-                    text = value[i]['text'];
-                    final.push({
-                        text: text
-                    });
+                //try catch for the exception handline if the value contains tweets then it will resolve with data else returns empty array
+                try {
+                    let value = tweets.statuses;
+                    let text;
+                    let final = [];
+                    for (let i = 0; i < value.length; i++) {
+                        text = value[i]['text'];
+                        final.push({
+                            text: text
+                        });
+                    }
+                    resolve(final);
+                } catch (err) {
+                    resolve([], null);
                 }
-                resolve(final);
             }
         });
     });
@@ -71,23 +85,26 @@ function getTweets(params) {
 
 function hashTweets(params) {
     return new Promise(function (resolve, reject) {
+        //client.get is a get api with 'search/tweets' of twitters and the params should be passed with the user check the line 45
         client.get('search/tweets', params, function (err, tweets, response) {
-            console.log("tweet: " + JSON.stringify(tweets.statuses))
             if (err && !response.statusCode == 200) {
                 console.log("error", response.statusCode);
                 reject('error', null);
             } else {
-                let value = tweets.statuses;
-                let text;
-                let name;
-                let final = [];
-                for (let i = 0; i < value.length; i++) {
-                    text = value[i]['text'];
-                    final.push({
-                        text: text
-                    });
+                try {
+                    let value = tweets.statuses;
+                    let text;
+                    let final = [];
+                    for (let i = 0; i < value.length; i++) {
+                        text = value[i]['text'];
+                        final.push({
+                            text: text
+                        });
+                    }
+                    resolve(final);
+                } catch (err) {
+                    resolve([], null);
                 }
-                resolve(final);
             }
         });
     });
