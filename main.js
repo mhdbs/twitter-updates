@@ -11,7 +11,13 @@ app.listen(PORT, function () {
     console.log("connection established");
 });
 
-app.use('/', bodyParser.json());
+app.use(express.static('dist'))
+
+app.use(bodyParser.json());
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html')
+});
 
 var client = new Twitter({
     consumer_key: process.env.CONSUMER_KEY,
@@ -47,9 +53,7 @@ function getTweets(params) {
                 console.log("error", response.statusCode);
                 reject('error', null);
             } else {
-                console.log("Status code", response.statusCode);
                 let value = tweets.statuses;
-                console.log("STATUSES", value);
                 let text;
                 let name;
                 let final = [];
@@ -73,7 +77,6 @@ function hashTweets(params) {
 
         client.stream('statuses/filter', params, function (stream) {
             stream.on('data', function (event) {
-                console.log(event && event.text);
                 data_1.push(event)
                 if (data_1.length > 3) {
                     let text;
@@ -91,7 +94,7 @@ function hashTweets(params) {
                 }
             });
             stream.on('error', function (error) {
-                throw error;
+                console.log(">", error);
             });
         });
 
